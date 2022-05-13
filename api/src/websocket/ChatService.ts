@@ -9,6 +9,3 @@ io.on("connect", (socket) => {
   });
 });
 
-io.on("disconnect", (socket) => {
-  console.log("A user DISconnect", socket.id);
-});
