@@ -1,10 +1,5 @@
-import express from "express";
-import http from "node:http";
-import { Server } from "socket.io";
-
-const app = express();
-
-const server = http.createServer(app);
+import { server } from "./http";
+import "./websocket/ChatService";
 
 server
   .listen(3000)
