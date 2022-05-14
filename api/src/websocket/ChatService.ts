@@ -5,7 +5,8 @@ import CreateChatRoomService from "../services/CreateChatRoomService";
 import CreateUserService from "../services/CreateUserService";
 import GetAllUsersService from "../services/GetAllUsersService";
 import GetUserBySocketIdService from "../services/GetUserBySocketIdService";
-import {  } from "mongoose";
+import {} from "mongoose";
+import GetChatRoomByUsersService from "../services/GetChatRoomByUsersService";
 
 interface IUserLoggedParams {
   email: string;
@@ -42,31 +43,38 @@ io.on("connect", (socket) => {
   socket.on("start", async (data) => {
     const user = await handleWithUserLogin({ ...data, socket_id: socket.id });
     socket.broadcast.emit("new_user", user);
-
     return;
   });
 
   socket.on("get_users", async (data, callback) => {
     const email = data.email;
     const allUsers = await getUsersToList(email);
-    callback(allUsers);
-
-    return;
+    return callback(allUsers);
   });
 
   socket.on("start_chat", async (data, callback) => {
     const createChatRoomService = container.resolve(CreateChatRoomService);
+    const getChatRoomByUsersService = container.resolve(
+      GetChatRoomByUsersService
+    );
     const getUserBySocketIdService = container.resolve(
       GetUserBySocketIdService
     );
 
     const userLogged = await getUserBySocketIdService.execute(socket.id);
 
-    const room = await createChatRoomService.execute([
+    let room = await getChatRoomByUsersService.execute([
       userLogged._id.toString(),
       data.idUser,
     ]);
 
-    callback(room);
+    if (!room) {
+      room = await createChatRoomService.execute([
+        userLogged._id.toString(),
+        data.idUser,
+      ]);
+    }
+
+    return callback(room);
   });
 });
