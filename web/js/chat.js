@@ -6,13 +6,37 @@ function onLoad() {
   const email = urlParams.get("email");
   const avatar = urlParams.get("avatar");
 
-  console.log(name, email, avatar);
+  document.querySelector(".user_logged").innerHTML += `
+    <img class="avatar_user_logged" src="${avatar}" alt="user avatar" />
+    <strong id="user_logged">
+      ${name}
+    </strong>
+  `;
 
   socket.emit("start", {
     name,
     email,
     avatar,
   });
+
+  socket.on("new_user", (data) => {
+    const existsInDiv = document.getElementById(`user_${data._id}`);
+    if (!existsInDiv && data.email !== email) addUser(data);
+  });
+
+  // socket.emit("get_users", { email }, (users) => {
+  //   users.forEach((user) => addUser(user));
+  // });
+}
+
+function addUser(user) {
+  const usersList = document.getElementById("users_list");
+  usersList.innerHTML += `
+  <li class="user_name_list" id="user_${user._id}" idUser="${user._id}">
+    <img class="nav_avatar" src="${user.avatar}" alt="profile picture of user in list"/>
+    ${user.name}
+  </li>
+  `;
 }
 
 onLoad();
