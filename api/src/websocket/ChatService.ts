@@ -1,8 +1,11 @@
 import { container } from "tsyringe";
 import { io } from "../http";
 import { User } from "../schemas/User";
+import CreateChatRoomService from "../services/CreateChatRoomService";
 import CreateUserService from "../services/CreateUserService";
 import GetAllUsersService from "../services/GetAllUsersService";
+import GetUserBySocketIdService from "../services/GetUserBySocketIdService";
+import {  } from "mongoose";
 
 interface IUserLoggedParams {
   email: string;
@@ -45,10 +48,25 @@ io.on("connect", (socket) => {
 
   socket.on("get_users", async (data, callback) => {
     const email = data.email;
-
     const allUsers = await getUsersToList(email);
     callback(allUsers);
 
     return;
+  });
+
+  socket.on("start_chat", async (data, callback) => {
+    const createChatRoomService = container.resolve(CreateChatRoomService);
+    const getUserBySocketIdService = container.resolve(
+      GetUserBySocketIdService
+    );
+
+    const userLogged = await getUserBySocketIdService.execute(socket.id);
+
+    const room = await createChatRoomService.execute([
+      userLogged._id.toString(),
+      data.idUser,
+    ]);
+
+    callback(room);
   });
 });

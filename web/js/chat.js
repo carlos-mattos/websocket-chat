@@ -1,4 +1,5 @@
 const socket = io("http://localhost:3000");
+let roomId = "";
 
 function onLoad() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -24,9 +25,9 @@ function onLoad() {
     if (!existsInDiv && data.email !== email) addUser(data);
   });
 
-  // socket.emit("get_users", { email }, (users) => {
-  //   users.forEach((user) => addUser(user));
-  // });
+  socket.emit("get_users", { email }, (users) => {
+    users.forEach((user) => addUser(user));
+  });
 }
 
 function addUser(user) {
@@ -38,5 +39,14 @@ function addUser(user) {
   </li>
   `;
 }
+
+document.getElementById("users_list").addEventListener("click", (event) => {
+  if (event.target && event.target.matches("li.user_name_list")) {
+    const idUser = event.target.getAttribute("idUser");
+    socket.emit("start_chat", { idUser }, (data) => {
+      roomId = data.id_chat_room;
+    });
+  }
+});
 
 onLoad();
