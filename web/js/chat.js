@@ -45,10 +45,10 @@ function addUser(user) {
 }
 
 document.getElementById("users_list").addEventListener("click", (event) => {
+  document.getElementById("message_user").innerHTML = "";
   if (event.target && event.target.matches("li.user_name_list")) {
     const idUser = event.target.getAttribute("idUser");
     socket.emit("start_chat", { idUser }, (data) => {
-      console.log(data);
       idChatRoom = data.room.id_chat_room;
 
       for (const message of data.messages) {
