@@ -8,6 +8,7 @@ import GetUserBySocketIdService from "../services/GetUserBySocketIdService";
 import GetChatRoomByUsersService from "../services/GetChatRoomByUsersService";
 import CreateMessageService from "../services/CreateMessageService";
 import GetMessageByChatRoomService from "../services/GetMessagesByChatRoomService";
+import GetChatRoomByIdService from "../services/GetChatRoomByIdService";
 
 interface IUserLoggedParams {
   email: string;
@@ -93,6 +94,7 @@ io.on("connect", (socket) => {
       GetUserBySocketIdService
     );
     const createMessageService = container.resolve(CreateMessageService);
+    const getChatRoomByIdService = container.resolve(GetChatRoomByIdService);
 
     const user = await getUserBySocketIdService.execute(socket.id);
     const message = await createMessageService.execute({
@@ -100,10 +102,23 @@ io.on("connect", (socket) => {
       text: data.message,
       roomId: data.idChatRoom,
     });
+    const room = await getChatRoomByIdService.execute(data.idChatRoom);
 
     io.to(data.idChatRoom).emit("send_message", {
       message,
       user,
     });
+
+    const userFrom = room.id_users.find(
+      (response) => response._id.toString() != user._id.toString()
+    );
+
+    io.to(userFrom.socket_id).emit("notification", {
+      newMessage: true,
+      roomId: data.idChatRoom,
+      from: user,
+    });
+
+    return;
   });
 });
