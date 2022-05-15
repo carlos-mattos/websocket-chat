@@ -7,6 +7,7 @@ import GetAllUsersService from "../services/GetAllUsersService";
 import GetUserBySocketIdService from "../services/GetUserBySocketIdService";
 import GetChatRoomByUsersService from "../services/GetChatRoomByUsersService";
 import CreateMessageService from "../services/CreateMessageService";
+import GetMessageByChatRoomService from "../services/GetMessagesByChatRoomService";
 
 interface IUserLoggedParams {
   email: string;
@@ -60,6 +61,9 @@ io.on("connect", (socket) => {
     const getUserBySocketIdService = container.resolve(
       GetUserBySocketIdService
     );
+    const getMessagesByChatRoomService = container.resolve(
+      GetMessageByChatRoomService
+    );
 
     const userLogged = await getUserBySocketIdService.execute(socket.id);
 
@@ -77,7 +81,11 @@ io.on("connect", (socket) => {
 
     socket.join(room.id_chat_room);
 
-    return callback(room);
+    const messages = await getMessagesByChatRoomService.execute(
+      room.id_chat_room
+    );
+
+    return callback({ room, messages });
   });
 
   socket.on("send_message", async (data) => {

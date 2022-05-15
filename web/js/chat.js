@@ -30,8 +30,8 @@ function onLoad() {
   });
 
   socket.on("send_message", (data) => {
-    console.log(data);
-  })
+    addMessage(data);
+  });
 }
 
 function addUser(user) {
@@ -48,7 +48,15 @@ document.getElementById("users_list").addEventListener("click", (event) => {
   if (event.target && event.target.matches("li.user_name_list")) {
     const idUser = event.target.getAttribute("idUser");
     socket.emit("start_chat", { idUser }, (data) => {
-      idChatRoom = data.id_chat_room;
+      console.log(data);
+      idChatRoom = data.room.id_chat_room;
+
+      for (const message of data.messages) {
+        addMessage({
+          message,
+          user: message.to,
+        });
+      }
     });
   }
 });
@@ -63,5 +71,21 @@ document
       socket.emit("send_message", { message, idChatRoom });
     }
   });
+
+function addMessage(data) {
+  const divMessageUser = document.getElementById("message_user");
+
+  divMessageUser.innerHTML += `
+    <span class="user_name user_name_date">
+    <img class="img_user" src="${data.user.avatar}" />
+    <strong>${data.user.name}</strong>
+    <span> ${dayjs(data.message.created_at).format(
+      "DD/MM/YYYY HH:mm"
+    )}</span></span>
+    <div class="messages">
+      <span class="chat_message"> ${data.message.text}</span>
+    </div>
+  `;
+}
 
 onLoad();
