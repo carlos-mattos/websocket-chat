@@ -5,8 +5,8 @@ import CreateChatRoomService from "../services/CreateChatRoomService";
 import CreateUserService from "../services/CreateUserService";
 import GetAllUsersService from "../services/GetAllUsersService";
 import GetUserBySocketIdService from "../services/GetUserBySocketIdService";
-import {} from "mongoose";
 import GetChatRoomByUsersService from "../services/GetChatRoomByUsersService";
+import CreateMessageService from "../services/CreateMessageService";
 
 interface IUserLoggedParams {
   email: string;
@@ -75,6 +75,27 @@ io.on("connect", (socket) => {
       ]);
     }
 
+    socket.join(room.id_chat_room);
+
     return callback(room);
+  });
+
+  socket.on("send_message", async (data) => {
+    const getUserBySocketIdService = container.resolve(
+      GetUserBySocketIdService
+    );
+    const createMessageService = container.resolve(CreateMessageService);
+
+    const user = await getUserBySocketIdService.execute(socket.id);
+    const message = await createMessageService.execute({
+      to: user._id.toString(),
+      text: data.message,
+      roomId: data.idChatRoom,
+    });
+
+    io.to(data.idChatRoom).emit("send_message", {
+      message,
+      user,
+    });
   });
 });

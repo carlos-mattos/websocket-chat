@@ -4,7 +4,7 @@ import { v4 as uuid } from "uuid";
 
 type ChatRoom = Document & {
   id_users: User[];
-  id_chat_room: String;
+  id_chat_room: string;
 };
 
 const ChatRoomSchema = new Schema({

@@ -1,10 +1,10 @@
 import mongoose, { Document, Schema } from "mongoose";
 
 type Message = Document & {
-  to: String;
-  text: String;
+  to: string;
+  text: string;
   created_at: Date;
-  room_id: String;
+  room_id: string;
 };
 
 const MessageSchema = new Schema({
